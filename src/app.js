@@ -5,6 +5,8 @@ var request = require('request');
 
 var app = express();
 
+const PORT = process.env.PORT || 3000;
+
 function getPokemon(url, getPokemonHandler) {
     request(url, function (error, response, body) {
         var result;
@@ -31,6 +33,6 @@ app.get('/pokemon/:name', function(req, res) {
     });
 });
 
-app.listen(3000, function() {
-    console.log("The server is running");
+app.listen(PORT, function() {
+    console.log(`Server started on: ${PORT}`);
 });
