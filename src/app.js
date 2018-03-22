@@ -8,7 +8,7 @@ var app = express();
 
 const PORT = process.env.PORT || 3000;
 
-const pikachu = {
+var pikachu = {
     pokedex_number: 0,
     name: '',
     description: {
@@ -58,31 +58,43 @@ const pikachu = {
 };
 
 app.get('/pokemon/:name', function(req, res) {
-    var urlP = 'https://pokeapi.co/api/v2/pokemon/' + req.params.name + '/';
-    var urlPS = 'https://pokeapi.co/api/v2/pokemon-species/' + req.params.name + '/';
-
-    var initializePromiseOne = initialize(urlP);
-    var initializePromiseTwo = initialize(urlPS);
+    var urlPokemonAPI = 'https://pokeapi.co/api/v2/pokemon/' + req.params.name + '/';
+    var urlPokemonSpeciesAPI = 'https://pokeapi.co/api/v2/pokemon-species/' + req.params.name + '/';
 
     Promise.all([
-        initializePromiseOne,
-        initializePromiseTwo
+        requestData(urlPokemonAPI),
+        requestData(urlPokemonSpeciesAPI)
     ]).then(function(results) {
-        console.log('===' + results[0].weight);
-        console.log('+++' + results[1].id);
-        pikachu.description.weight = results[0].weight;
-        pikachu.description.height = results[0].height;
-        pikachu.description.sprite = results[0].sprites.front_default;
-        pikachu.forms = [];
-        pikachu.forms.push(results[0].forms[0].name);
-        pikachu.base_exp = results[0].base_experience;
+        const pokemonItem = results[0];
+        const pokemonSpeciesItem = results[1];
+        console.log('start');
 
-        pikachu.pokedex_number = results[1].id;
+        pikachu.name = pokemonItem.name;
+
+        const { genera } = pokemonSpeciesItem;
+        let generaObj = genera.find(function (obj) { return obj.language.name === 'en'; });
+        let genus = generaObj.genus;
+
+        const { habitat: {name: habitat}, color: {name: color}, shape: {name: shape}} = pokemonSpeciesItem;
+
+        const { weight, height } = pokemonItem;
+        pikachu = {
+            description: { genus, habitat, weight, height, color, shape }
+        };
+        pikachu.pokedex_number = pokemonItem.id;
+
+        console.log('end');
+
+        pikachu.description.sprite = pokemonItem.sprites.front_default;
+        pikachu.forms = [];
+        pikachu.forms.push(pokemonItem.forms[0].name);
+        pikachu.base_exp = pokemonItem.base_experience;
+
         res.send(pikachu);
     });
 });
 
-function initialize(url) {
+function requestData(url) {
     return new Promise(function(resolve, reject) {
         request.get(url, function(err, resp, body) {
             if (err) {
