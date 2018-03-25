@@ -40,10 +40,7 @@ var pikachu = {
     egg_groups: [],
     hatch_counter: 0,
     gender_rate: 0,
-    abilities: [
-        { name: '', slot: 0, hidden: true },
-        { name: '', slot: 0, hidden: false },
-    ],
+    abilities: ['one'],
     moves: [
         { name: '', method: '', level: 0 },
         { name: '', method: '', level: 0 },
@@ -69,26 +66,73 @@ app.get('/pokemon/:name', function(req, res) {
         const pokemonSpeciesItem = results[1];
         console.log('start');
 
-        pikachu.name = pokemonItem.name;
-
         const { genera } = pokemonSpeciesItem;
         let generaObj = genera.find(function (obj) { return obj.language.name === 'en'; });
         let genus = generaObj.genus;
 
-        const { habitat: {name: habitat}, color: {name: color}, shape: {name: shape}} = pokemonSpeciesItem;
+        const { flavor_text_entries } = pokemonSpeciesItem;
+        let flavorTextObj = flavor_text_entries.find(function (obj) { return obj.language.name === 'en'; });
+        let flavor_text = flavorTextObj.flavor_text;
+
+        const { habitat: {name: habitat}, color: {name: color}, shape: {name: shape}, growth_rate: {name: growth_rate}} = pokemonSpeciesItem;
 
         const { weight, height } = pokemonItem;
-        pikachu = {
-            description: { genus, habitat, weight, height, color, shape }
-        };
-        pikachu.pokedex_number = pokemonItem.id;
 
-        console.log('end');
+        const { stats } = pokemonItem;
+        let statsSpeedObj = stats.find(function (obj) { return obj.stat.name === 'speed'; });
+        let speed = statsSpeedObj.base_stat;
+        let statsSpDefObj = stats.find(function (obj) { return obj.stat.name === 'special-defense'; });
+        let sp_defense = statsSpDefObj.base_stat;
+        let statsSpAttObj = stats.find(function (obj) { return obj.stat.name === 'special-attack'; });
+        let sp_attack = statsSpAttObj.base_stat;
+        let statsDefObj = stats.find(function (obj) { return obj.stat.name === 'defense'; });
+        let defense = statsDefObj.base_stat;
+        let statsAttObj = stats.find(function (obj) { return obj.stat.name === 'attack'; });
+        let attack = statsAttObj.base_stat;
+        let statsHPObj = stats.find(function (obj) { return obj.stat.name === 'hp'; });
+        let hp = statsHPObj.base_stat;
+
+        const { base_happiness, hatch_counter, gender_rate } = pokemonSpeciesItem;
+
+        pikachu = {
+            pokedex_number: pokemonItem.id,
+            name: pokemonItem.name,
+            description: { genus, habitat, flavor_text, weight, height, color, shape },
+            base_exp: pokemonItem.base_experience,
+            base_happiness,
+            growth_rate,
+            stats: { speed, sp_defense, sp_attack, defense, attack, hp },
+            hatch_counter,
+            gender_rate
+        };
+
+        const { abilities } = pokemonItem;
+        pikachu.abilities = [];
+        for (let {ability: {name: name}, slot: slot, is_hidden: hidden } of abilities) {
+            pikachu.abilities.push({name, slot, hidden});
+        }
 
         pikachu.description.sprite = pokemonItem.sprites.front_default;
+
+        const { forms } = pokemonItem;
         pikachu.forms = [];
-        pikachu.forms.push(pokemonItem.forms[0].name);
-        pikachu.base_exp = pokemonItem.base_experience;
+        for (let { name: name } of forms) {
+            pikachu.forms.push(name);
+        }
+
+        const { types } = pokemonItem;
+        pikachu.types = [];
+        for (let {type: {name: name} } of types) {
+            pikachu.types.push(name);
+        }
+
+        const { egg_groups } = pokemonSpeciesItem;
+        pikachu.egg_groups = [];
+        for (let { name: name } of egg_groups) {
+            pikachu.egg_groups.push(name);
+        }
+
+        console.log('end');
 
         res.send(pikachu);
     });
