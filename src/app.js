@@ -54,9 +54,10 @@ var pikachu = {
     ]
 };
 
-app.get('/pokemon/:name', function(req, res) {
+app.get('/:versiongroup/pokemon/:name', function(req, res) {
     var urlPokemonAPI = 'https://pokeapi.co/api/v2/pokemon/' + req.params.name + '/';
     var urlPokemonSpeciesAPI = 'https://pokeapi.co/api/v2/pokemon-species/' + req.params.name + '/';
+    var versionGroupName = req.params.versiongroup;
 
     Promise.all([
         requestData(urlPokemonAPI),
@@ -136,15 +137,68 @@ app.get('/pokemon/:name', function(req, res) {
 
         const { moves } = pokemonItem;
         pikachu.moves = [];
+
+        var VGone, VGtwo;
+        switch(versionGroupName) {
+            case 'rby':
+                VGone = 'red-blue';
+                VGtwo = 'yellow';
+                break;
+
+            case 'gsc':
+                VGone = 'gold-silver';
+                VGtwo = 'crystal';
+                break;
+
+            case 'rse':
+                VGone = 'ruby-sapphire';
+                VGtwo = 'emerald';
+                break;
+
+            case 'frlg':
+                VGone = 'firered-leafgreen';
+                break;
+
+            case 'dpp':
+                VGone = 'diamond-pearl';
+                VGtwo = 'platinum';
+                break;
+
+            case 'hgss':
+                VGone = 'heartgold-soulsilver';
+                break;
+
+            case 'bw':
+                VGone = 'black-white';
+                break;
+
+            case 'b2w2':
+                VGone = 'black-2-white-2';
+                break;
+
+            case 'xy':
+                VGone = 'x-y';
+                break;
+
+            case 'oras':
+                VGone = 'omega-ruby-alpha-sapphire';
+                break;
+
+            case 'sm':
+                VGone = 'sun-moon';
+                break;
+        }
+
         for (let {move: {name}} of moves) {
             let moveObj = moves.find(function (obj) { return obj.move.name === name; });
-            let verGrDetArr = moveObj.version_group_details.find(function (obj) { return obj.version_group.name === 'yellow'; });
+            let verGrDetArr = moveObj.version_group_details.find(function (obj) { return obj.version_group.name === (VGone || VGtwo); });
             if (moveObj && verGrDetArr) {
                 pikachu.moves.push({name: moveObj.move.name, method: verGrDetArr.move_learn_method.name, level: verGrDetArr.level_learned_at });
             }
         }
 
         res.send(pikachu);
+        console.log(VGone + '==' + VGtwo);
     });
 });
 
