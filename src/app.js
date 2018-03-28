@@ -134,6 +134,16 @@ app.get('/pokemon/:name', function(req, res) {
 
         console.log('end');
 
+        const { moves } = pokemonItem;
+        pikachu.moves = [];
+        for (let {move: {name}} of moves) {
+            let moveObj = moves.find(function (obj) { return obj.move.name === name; });
+            let verGrDetArr = moveObj.version_group_details.find(function (obj) { return obj.version_group.name === 'yellow'; });
+            if (moveObj && verGrDetArr) {
+                pikachu.moves.push({name: moveObj.move.name, method: verGrDetArr.move_learn_method.name, level: verGrDetArr.level_learned_at });
+            }
+        }
+
         res.send(pikachu);
     });
 });
